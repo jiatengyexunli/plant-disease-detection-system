@@ -17,3 +17,18 @@ secrets.h
 # User requested: keep local old snapshots unchanged and do not upload them.
 /zhihuibianjie.zip
 /zhihuijisuan2.zip
+
+# Upload only a representative sample from each training class.
+/训练集/训练集.7z
+/训练集/训练集/正常/*
+!/训练集/训练集/正常/IMG_20260417_194636.jpg
+!/训练集/训练集/正常/IMG_20260417_194637.jpg
+!/训练集/训练集/正常/IMG_20260417_194638.jpg
+!/训练集/训练集/正常/IMG_20260417_194639.jpg
+!/训练集/训练集/正常/IMG_20260417_194640_1.jpg
+/训练集/训练集/异常/*
+!/训练集/训练集/异常/IMG_20260417_193220.jpg
+!/训练集/训练集/异常/IMG_20260417_193223.jpg
+!/训练集/训练集/异常/IMG_20260417_193227.jpg
+!/训练集/训练集/异常/IMG_20260417_193230.jpg
+!/训练集/训练集/异常/IMG_20260417_193233.jpg
