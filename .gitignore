@@ -1,0 +1,19 @@
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Generated STM32 build output
+zhihuijisuan2/build/
+zhihuijisuan2/build-*/
+
+# Editor and OS metadata
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Local secret overrides (not present in this repository)
+secrets.h
+
+# User requested: keep local old snapshots unchanged and do not upload them.
+/zhihuibianjie.zip
+/zhihuijisuan2.zip
