@@ -4,8 +4,6 @@
 K210 运行 MaixPy YOLOv2 模型识别正常/病害叶片，STM32F103 采集 DHT11、
 BH1750 光照和土壤湿度，ESP8266 将 JSON 数据和病害图片上传到后端。
 
-本仓库是截图所选文件的独立副本，没有包含未选中的根目录 `sketch_apr14a`。
-保留原有工程结构，只修复代码缺陷并补充注释，没有进行大规模重构。
 
 > 本 README 不使用图片。仓库中的 PNG 是用户选择保留的后端接口截图文件，
 > 不是本说明的配图。
@@ -209,54 +207,10 @@ const char *password = "YOUR_WIFI_PASSWORD";
 const char *host = "YOUR_SERVER_IP";
 ```
 
-## 本次修复的问题
-
-### MaixPy 识别逻辑
-
-1. `zhihuijisuan2/main.py` 把 class 0 当病害，而模型标签是 normal=0、disease=1。
-2. 根脚本中冷却计时的初值为 0，开机的第一次检测可能被错误抑制。
-3. `zhihuijisuan2/main.py` 定义了冷却时间却从未执行冷却判断。
-4. 模型加载失败后仍然调用 `kpu.init_yolo2()`，导致脚本二次异常。
-5. 根脚本使用 `/sd/plant_model.kmodel`，但选中模型实际叫 `model-264961.kmodel`。
-6. `清晰/main.py` 使用不存在的 `model-264924.kmodel`，与同目录模型名称不一致。
-7. `zhihuijisuan2/main.py` 的 anchors 与当前 `plant_model.kmodel` 不匹配。
-8. 320x240 图像直接绘制到 224x224 缓冲区，只保留左上角区域；现在使用 224x224 windowing。
-9. `清晰/main.py` 的 UART1 使用 IO10/11，与接线说明和其他脚本的 IO7/9 不一致。
-10. 病害类别、模型路径和 UART 引脚都改为明确常量/注释，避免再次混淆。
-
-### ESP8266
-
-1. `sketch_apr15a` 原本期待 `BIT_START`/`BIT_END` 和 01 文本，但当前 MaixPy 直接发送 JPEG，图片永远无法上传。
-2. 20 KB 图片缓冲区会截断较大的 QVGA JPEG，并且没有溢出状态。
-3. 缓冲区不足时会继续上传不完整数据；现在直接丢弃整张图片。
-4. JSON 文本此前会不断堆积到图片缓冲区，最终挤占 JPEG 容量。
-5. Wi-Fi 连接使用无期限 `while`，热点失败时设备永久卡住。
-6. 图片端点头部与截图不一致，已统一为 `diseaseResult`、`warning`、`create_time`、`id`。
-7. STM32 的固定日期已由 ESP8266 NTP 时间替换。
-8. 真实 Wi-Fi 名称和密码已替换为占位符。
-
-### STM32
-
-1. 中断发送直接从接收环形缓冲区读取，发送期间可能被新图片覆盖。
-2. `debug_printf()` 可能使用大于真实缓冲区的长度参数。
-3. DHT11 的空循环延时在 Release 优化下可能失效。
-4. DHT11、ADC 失败时发送 0，无法区分故障和真实测量值。
-5. ADC 采样时间 1.5 周期对高阻模拟输入过短。
-6. 0 lux 被 BH1750 驱动误判为错误。
-7. JPEG 中断丢失时 `image_transmitting` 可能永久为 1。
-8. USART 错误标志在进入 HAL 处理前被清掉，HAL 无法调用错误回调恢复接收。
-9. JSON 字段名与后端 API 截图不一致。
-
-### 拍照脚本
-
-1. `photo_num` 每次上电都从 0 开始，会覆盖 SD 卡中的旧照片。
-2. SD 写入失败会让脚本异常退出；现在显示 `SAVE FAILED` 并继续运行。
 
 ## 已知限制
 
-- 没有连接实物 K210、STM32、ESP8266 和真实后端进行端到端验证。
 - STM32 已完整编译验证；4 个 MaixPy 脚本通过 Python 语法检查。
-- 当前环境没有 Arduino CLI，因此 ESP8266 `.ino` 只做了静态检查，未在本机编译。
 - 图片协议没有硬件流控。虽然已修复发送缓冲覆盖问题，但 ESP8266 长时间阻塞时
   仍可能因 4 KB STM32 接收环形缓冲区不足而丢图。
 - 模型精度有限。选中 `model-264961` 的 `report.json` 中，病害 AP 约为 0.59，
